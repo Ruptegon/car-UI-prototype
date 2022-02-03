@@ -1,24 +1,74 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Telltale : MonoBehaviour
+namespace RTT 
 {
-    [SerializeField]
-    private Image tellTaleOnImage;
-
-    public bool IsOn { get { return isOn; } set => SetIsOn(value); }
-    private bool isOn;
-
-    private void Start()
+    public class Telltale : MonoBehaviour
     {
-        isOn = tellTaleOnImage.enabled;
-    }
+        [SerializeField]
+        private Image tellTaleOnImage;
 
-    private void SetIsOn(bool newIsOn) 
-    {
-        isOn = newIsOn;
-        tellTaleOnImage.enabled = isOn;
+        [SerializeField]
+        private TelltaleState state;
+
+        [SerializeField]
+        private float blinkingRate = 1;
+
+        private TelltaleState lastState;
+        private Sequence blinkingSequence;
+
+        public void SetState(TelltaleState newState) 
+        {
+            state = newState;
+        }
+
+        private void Start()
+        {
+            lastState = state;
+            OnStateChanged();
+        }
+
+        private void Update()
+        {
+            if (lastState != state) 
+            {
+                OnStateChanged();
+            }
+        }
+
+        private void OnStateChanged()
+        {
+            if (lastState == TelltaleState.BLINKING) 
+            {
+                blinkingSequence?.Kill();
+            }
+
+            switch (state) 
+            {
+                case TelltaleState.ON:
+                    tellTaleOnImage.enabled = true;
+                    break;
+
+                case TelltaleState.OFF:
+                    tellTaleOnImage.enabled = false;
+                    break;
+
+                case TelltaleState.BLINKING:
+                    StartBlinkingSequence();
+                    break;
+            }
+            lastState = state;
+        }
+
+        private void StartBlinkingSequence() 
+        {
+            blinkingSequence = DOTween.Sequence();
+            blinkingSequence.SetLoops(-1);
+            blinkingSequence.AppendCallback(() => tellTaleOnImage.enabled = !tellTaleOnImage.enabled);
+            blinkingSequence.AppendInterval(blinkingRate);
+        }
+
+        public enum TelltaleState { ON, OFF, BLINKING }
     }
 }
