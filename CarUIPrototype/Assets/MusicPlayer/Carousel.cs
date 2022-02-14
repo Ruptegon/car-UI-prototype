@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class Carousel : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler
+public class Carousel : MonoBehaviour, IDragHandler, IBeginDragHandler
 {
     [SerializeField]
     private float dragTreshold = 20;
@@ -44,37 +44,24 @@ public class Carousel : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDrag
         {
             itemsFrontRow[i].sizeDelta = new Vector2(elementWidth, itemsFrontRow[i].sizeDelta.y);
         }
+        ScaleElements();
         SortElements();
         AssignSiblingIndices();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        previousFrameDragPosition = eventData.position;
+        previousFrameDragPosition = Camera.main.ScreenToWorldPoint(eventData.position);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        MoveElements(eventData.position.x - previousFrameDragPosition.x);
+        Vector3 worldPos = Camera.main.ScreenToWorldPoint(eventData.position);
+        MoveElements(worldPos.x - previousFrameDragPosition.x);
         ScaleElements();
         SortElements();
         AssignSiblingIndices();
-        previousFrameDragPosition = eventData.position;
-    }
-
-    public void OnEndDrag(PointerEventData eventData)
-    {
-        if (Mathf.Abs(eventData.position.x - eventData.pressPosition.x) > dragTreshold) 
-        {
-            if (eventData.position.x > eventData.pressPosition.x)
-            {
-                Debug.Log("Scroll right");
-            }
-            else 
-            {
-                Debug.Log("Scroll left");
-            }
-        }
+        previousFrameDragPosition = worldPos;
     }
 
     private void MoveElements(float distance) 
